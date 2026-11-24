@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AniTrack — Каталог и трекер аниме</title>
+  <link rel="stylesheet" href="./css/variables.css" />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="brand">
+        <a href="#" class="logo">Ani<span>Track</span></a>
+        <span id="api-badge" class="api-badge">AniList</span>
+      </div>
+
+      <nav class="main-nav">
+        <button class="nav-btn active" data-tab="catalog" type="button">Обзор</button>
+        <button class="nav-btn" data-tab="schedule" type="button">Расписание</button>
+        <button class="nav-btn" data-tab="library" type="button">
+          Мой список <span id="library-count" class="badge">0</span>
+        </button>
+      </nav>
+
+      <div class="topbar-right">
+        <div class="source-toggle">
+          <button class="source-btn active" data-provider="anilist" type="button">AniList</button>
+          <button class="source-btn" data-provider="jikan" type="button">Jikan</button>
+        </div>
+
+        <form id="search-form" class="search-form">
+          <input
+            id="search-input"
+            class="search-input"
+            type="search"
+            placeholder="Найти тайтл..."
+            autocomplete="off"
+          />
+          <button id="clear-search" class="clear-btn" type="button" hidden>×</button>
+        </form>
+
+        <button id="open-auth-btn" class="btn btn-primary" type="button">Войти</button>
+        <div id="user-box" class="user-box" hidden>
+          <span id="user-email" class="user-email"></span>
+          <button id="logout-btn" class="btn btn-secondary" type="button">Выйти</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container page">
+    <section class="tab-view" data-view="catalog">
+      <div class="section-head">
+        <h1 id="catalog-heading" class="section-title">Популярные онгоинги</h1>
+      </div>
+      <div id="catalog-grid" class="cards-grid"></div>
+    </section>
+
+    <section class="tab-view" data-view="schedule" hidden>
+      <div class="section-head">
+        <h2 class="section-title">Расписание серий</h2>
+        <div id="day-filters" class="chips">
+          <button class="chip active" data-day="monday" type="button">Пн</button>
+          <button class="chip" data-day="tuesday" type="button">Вт</button>
+          <button class="chip" data-day="wednesday" type="button">Ср</button>
+          <button class="chip" data-day="thursday" type="button">Чт</button>
+          <button class="chip" data-day="friday" type="button">Пт</button>
+          <button class="chip" data-day="saturday" type="button">Сб</button>
+          <button class="chip" data-day="sunday" type="button">Вс</button>
+        </div>
+      </div>
+      <div id="schedule-grid" class="cards-grid"></div>
+    </section>
+
+    <section class="tab-view" data-view="library" hidden>
+      <div id="guest-placeholder" class="guest-box">
+        <h2>Войдите, чтобы вести свой список</h2>
+        <p>
+          После входа вы сможете добавлять аниме в личный трекер, отмечать серии и сохранять оценки в облаке.
+        </p>
+        <button id="guest-auth-btn" class="btn btn-primary" type="button">Войти или зарегистрироваться</button>
+      </div>
+
+      <div id="library-wrapper" hidden>
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Мой список</h2>
+            <p id="library-stats" class="muted-text">Всего тайтлов: 0 • Просмотрено серий: 0</p>
+          </div>
+          <div class="io-actions">
+            <button id="export-btn" class="btn btn-secondary" type="button">Экспорт JSON</button>
+            <label class="btn btn-secondary" for="import-input">Импорт JSON</label>
+            <input id="import-input" type="file" accept=".json,application/json" hidden />
+          </div>
+        </div>
+
+        <div id="status-filters" class="chips">
+          <button class="chip active" data-filter="all" type="button">Все</button>
+          <button class="chip" data-filter="watching" type="button">Смотрю</button>
+          <button class="chip" data-filter="planned" type="button">В планах</button>
+          <button class="chip" data-filter="completed" type="button">Просмотрено</button>
+          <button class="chip" data-filter="dropped" type="button">Брошено</button>
+        </div>
+
+        <div id="library-grid" class="cards-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="auth-dialog" class="dialog dialog-sm">
+    <div class="dialog-body">
+      <button id="close-auth-btn" class="dialog-close" type="button">×</button>
+
+      <div class="auth-switch">
+        <button class="auth-tab active" data-mode="login" type="button">Вход</button>
+        <button class="auth-tab" data-mode="register" type="button">Регистрация</button>
+      </div>
+
+      <form id="auth-form" class="form-stack">
+        <label class="field">
+          <span>Email</span>
+          <input name="email" class="input" type="email" placeholder="you@mail.ru" required />
+        </label>
+
+        <label class="field">
+          <span>Пароль</span>
+          <input name="password" class="input" type="password" placeholder="Минимум 6 символов" minlength="6" required />
+        </label>
+
+        <p id="auth-error" class="error-msg" hidden></p>
+
+        <button id="auth-submit" class="btn btn-primary full-width" type="submit">Войти</button>
+      </form>
+    </div>
+  </dialog>
+
+  <dialog id="details-dialog" class="dialog">
+    <div class="dialog-body">
+      <button id="close-details-btn" class="dialog-close" type="button">×</button>
+      <div class="details-layout">
+        <img id="modal-poster" class="details-poster" src="" alt="" />
+        <div class="details-info">
+          <h2 id="modal-title" class="details-title"></h2>
+          <p id="modal-orig-title" class="muted-text"></p>
+          <p id="modal-meta" class="muted-text"></p>
+          <div id="modal-genres" class="genres-list"></div>
+          <p id="modal-synopsis" class="details-desc"></p>
+
+          <div class="tracker-controls">
+            <label class="field">
+              <span>Статус</span>
+              <select id="modal-status" class="input">
+                <option value="">Не в списке</option>
+                <option value="watching">Смотрю</option>
+                <option value="planned">В планах</option>
+                <option value="completed">Просмотрено</option>
+                <option value="dropped">Брошено</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Оценка</span>
+              <select id="modal-score" class="input">
+                <option value="0">Без оценки</option>
+                <option value="10">10 — Шедевр</option>
+                <option value="9">9 — Отлично</option>
+                <option value="8">8 — Очень хорошо</option>
+                <option value="7">7 — Хорошо</option>
+                <option value="6">6 — Нормально</option>
+                <option value="5">5 — Средне</option>
+                <option value="4">4 — Слабо</option>
+                <option value="3">3 — Плохо</option>
+                <option value="2">2 — Ужасно</option>
+                <option value="1">1 — Провал</option>
+              </select>
+            </label>
+
+            <div class="field">
+              <span>Прогресс серий</span>
+              <div class="stepper">
+                <button id="ep-minus" class="btn btn-secondary" type="button">−1</button>
+                <span class="stepper-val"><b id="ep-current">0</b> / <span id="ep-total">?</span></span>
+                <button id="ep-plus" class="btn btn-primary" type="button">+1</button>
+              </div>
+            </div>
+          </div>
+
+          <button id="modal-remove" class="btn btn-danger" type="button" hidden>Удалить из списка</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toasts" class="toasts"></div>
+
+  <template id="card-tpl">
+    <article class="card" data-uid="">
+      <div class="card-cover">
+        <img class="card-img" src="" alt="" loading="lazy" />
+        <span class="card-rating"></span>
+        <span class="card-status" hidden></span>
+        <span class="card-airing" hidden></span>
+      </div>
+      <div class="card-body">
+        <h3 class="card-title"></h3>
+        <p class="card-meta"></p>
+        <div class="card-footer">
+          <button class="btn btn-primary" data-action="quick-add" type="button">+ В список</button>
+          <button class="btn btn-secondary" data-action="details" type="button">Инфо</button>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <template id="library-card-tpl">
+    <article class="card" data-uid="">
+      <div class="card-cover">
+        <img class="card-img" src="" alt="" loading="lazy" />
+        <span class="card-rating"></span>
+        <span class="card-status"></span>
+      </div>
+      <div class="card-body">
+        <h3 class="card-title"></h3>
+        <p class="card-progress"></p>
+        <div class="progress">
+          <div class="progress-fill"></div>
+        </div>
+        <div class="card-footer">
+          <button class="btn btn-primary" data-action="inc-ep" type="button">+1 серия</button>
+          <button class="btn btn-secondary" data-action="details" type="button">Изменить</button>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <template id="skeleton-tpl">
+    <div class="card skeleton">
+      <div class="skeleton-cover"></div>
+      <div class="card-body">
+        <div class="skeleton-line"></div>
+        <div class="skeleton-line short"></div>
+      </div>
+    </div>
+  </template>
+
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>

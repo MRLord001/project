@@ -1,0 +1,20 @@
+:root {
+  --bg: #111215;
+  --surface: #191b20;
+  --surface-alt: #22252c;
+  --border: #2c303a;
+
+  --text: #eceef2;
+  --text-muted: #949ba8;
+
+  --accent: #ff6b4a;
+  --accent-hover: #ff8063;
+  --danger: #e5484d;
+
+  --st-watching: #38bdf8;
+  --st-planned: #a78bfa;
+  --st-completed: #34d399;
+  --st-dropped: #f87171;
+
+  --radius: 10px;
+}
